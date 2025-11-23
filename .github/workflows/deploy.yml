@@ -1,0 +1,12 @@
+name: Deployment Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_placeholder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Placeholder
+        run: echo "CD not configured yet"
