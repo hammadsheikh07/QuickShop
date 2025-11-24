@@ -6,18 +6,80 @@
 class NotificationManager {
     constructor() {
         this.container = null;
+        this.initialized = false;
         this.init();
     }
 
     init() {
-        // Create notification container if it doesn't exist
-        if (!document.getElementById('notification-container')) {
-            this.container = document.createElement('div');
-            this.container.id = 'notification-container';
-            this.container.className = 'notification-container';
-            document.body.appendChild(this.container);
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.initializeContainer());
         } else {
-            this.container = document.getElementById('notification-container');
+            this.initializeContainer();
+        }
+    }
+
+    initializeContainer() {
+        if (this.initialized) return;
+        
+        // Check if container already exists
+        let existingContainer = document.getElementById('notification-container');
+        
+        if (existingContainer) {
+            // If container exists, check if it's already in the body (not nested)
+            if (existingContainer.parentElement === document.body) {
+                this.container = existingContainer;
+            } else {
+                // If it's nested, remove it and create a new one
+                existingContainer.remove();
+                this.createContainer();
+            }
+        } else {
+            this.createContainer();
+        }
+        
+        this.initialized = true;
+    }
+
+    createContainer() {
+        // Ensure we're appending to body, not any other container
+        if (!document.body) {
+            // If body doesn't exist yet, wait a bit and try again
+            setTimeout(() => this.createContainer(), 10);
+            return;
+        }
+        
+        // Remove ALL existing containers first (even if properly placed, we'll recreate)
+        const allContainers = document.querySelectorAll('#notification-container');
+        allContainers.forEach(container => container.remove());
+        
+        this.container = document.createElement('div');
+        this.container.id = 'notification-container';
+        this.container.className = 'notification-container';
+        
+        // Force append to body, ensuring it's the last child
+        document.body.appendChild(this.container);
+        
+        // Double-check it's in the right place
+        if (this.container.parentElement !== document.body) {
+            // If somehow it's still in the wrong place, move it
+            this.container.remove();
+            document.body.appendChild(this.container);
+        }
+    }
+    
+    ensureContainer() {
+        // Check if container exists and is properly placed
+        if (!this.container || !document.body.contains(this.container)) {
+            this.initializeContainer();
+            return;
+        }
+        
+        // If container is not directly in body, move it
+        if (this.container.parentElement !== document.body) {
+            const parent = this.container.parentElement;
+            parent.removeChild(this.container);
+            document.body.appendChild(this.container);
         }
     }
 
@@ -28,6 +90,14 @@ class NotificationManager {
      * @param {number} duration - Duration in milliseconds (default: 3000)
      */
     show(message, type = 'success', duration = 3000) {
+        // Ensure container exists and is properly attached
+        this.ensureContainer();
+        
+        if (!this.container) {
+            console.error('Notification container not available');
+            return null;
+        }
+        
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         
@@ -122,9 +192,16 @@ class NotificationManager {
     }
 }
 
-// Create global instance
-const notifications = new NotificationManager();
-
-// Make it available globally
-window.notifications = notifications;
+// Create global instance only if it doesn't exist
+// This prevents multiple instances from being created if the script is loaded multiple times
+if (!window.notifications) {
+    window.notifications = new NotificationManager();
+} else {
+    // If instance exists, ensure container is properly placed
+    if (window.notifications.container && window.notifications.container.parentElement !== document.body) {
+        const container = window.notifications.container;
+        container.remove();
+        document.body.appendChild(container);
+    }
+}
 

@@ -122,6 +122,7 @@ if (!$product) {
         <?php endif; ?>
     </div>
 
+    <script src="js/api-config.js"></script>
     <script src="js/notifications.js"></script>
     <script src="js/navbar.js"></script>
     <script src="js/product-actions.js"></script>
