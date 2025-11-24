@@ -11,11 +11,11 @@ class Database
     public static function getConnection(): PDO
     {
         if (self::$instance === null) {
-            // MySQL configuration for XAMPP
-            $host = 'localhost';
-            $dbname = 'quickshop';
-            $username = 'root';
-            $password = ''; // Default XAMPP password (empty)
+            // MySQL configuration - supports environment variables for Docker
+            $host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
+            $dbname = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'quickshop';
+            $username = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'root';
+            $password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
 
             try {
                 $dsn = "mysql:host={$host};dbname={$dbname};charset=utf8mb4";

@@ -1,0 +1,46 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quickshop-web
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./vendor:/var/www/html/vendor
+    environment:
+      - DB_HOST=db
+      - DB_NAME=quickshop
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+    depends_on:
+      - db
+    networks:
+      - quickshop-network
+
+  db:
+    image: mysql:8.0
+    container_name: quickshop-db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=quickshop
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - quickshop-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  quickshop-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+

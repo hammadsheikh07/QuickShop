@@ -1,5 +1,10 @@
 <!-- Navbar Component -->
 <?php
+// Initialize session early if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+
 // Check if we're in admin section
 $isAdminPage = strpos($_SERVER['PHP_SELF'], '/admin/') !== false || strpos($_SERVER['PHP_SELF'], '\\admin\\') !== false;
 

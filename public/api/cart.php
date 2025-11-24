@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/../../public/includes/session-init.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Config\Database;

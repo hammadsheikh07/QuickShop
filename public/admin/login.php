@@ -1,16 +1,12 @@
 <?php
 
+require_once __DIR__ . '/../../public/includes/session-init.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../public/includes/helpers.php';
 
 use App\Config\Database;
 use App\Repositories\AdminRepository;
 use App\Services\AuthService;
-
-// Redirect if already logged in
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
 $authService = new AuthService(new AdminRepository(Database::getConnection()));
 if ($authService->isAuthenticated()) {

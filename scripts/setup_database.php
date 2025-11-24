@@ -2,11 +2,11 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// MySQL configuration for XAMPP
-$host = 'localhost';
-$dbname = 'quickshop';
-$username = 'root';
-$password = ''; // Default XAMPP password (empty)
+// MySQL configuration - supports environment variables for Docker
+$host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: 'localhost';
+$dbname = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: 'quickshop';
+$username = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'root';
+$password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
 
 try {
     // Step 1: Connect to MySQL server (without database)

@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/../../public/includes/session-init.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../public/includes/helpers.php';
 require_once __DIR__ . '/../../public/includes/admin-helpers.php';

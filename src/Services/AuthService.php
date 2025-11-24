@@ -32,7 +32,7 @@ class AuthService
     public function isAuthenticated(): bool
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            @session_start();
         }
         return isset($_SESSION['admin_id']);
     }
@@ -44,16 +44,16 @@ class AuthService
         }
 
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            @session_start();
         }
 
-        return $this->adminRepo->findById($_SESSION['admin_id']);
+        return $this->adminRepo->findById($_SESSION['admin_id'] ?? null);
     }
 
     public function setSession(Admin $admin): void
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            @session_start();
         }
         $_SESSION['admin_id'] = $admin->getId();
         $_SESSION['admin_username'] = $admin->getUsername();
@@ -62,7 +62,7 @@ class AuthService
     public function logout(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            @session_start();
         }
         unset($_SESSION['admin_id']);
         unset($_SESSION['admin_username']);

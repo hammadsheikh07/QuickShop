@@ -26,6 +26,24 @@ A modern e-commerce web application built using PHP with a clean architecture, f
 
 ## Setup Instructions
 
+### Quick Start with Docker (Recommended)
+
+The easiest way to run QuickShop is using Docker. No local PHP or MySQL installation required!
+
+```bash
+# Start the application
+docker-compose up -d
+
+# Access the application
+# Web: http://localhost:8080
+# Admin: http://localhost:8080/admin/login.php
+# Default admin: username: admin, password: admin123
+```
+
+For detailed Docker instructions, see [DOCKER.md](DOCKER.md).
+
+### Manual Setup
+
 ### 1. Install Dependencies
 ```bash
 composer install

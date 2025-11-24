@@ -45,7 +45,7 @@ function requireAdminAuth(): void
 function getCurrentAdminUsername(): ?string
 {
     if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+        @session_start();
     }
     return $_SESSION['admin_username'] ?? null;
 }
