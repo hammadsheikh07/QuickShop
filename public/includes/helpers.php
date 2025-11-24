@@ -61,3 +61,23 @@ function escapeHtml($text) {
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Get session ID for cart
+ */
+function getCartSessionId() {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (!isset($_SESSION['cart_session_id'])) {
+        $_SESSION['cart_session_id'] = session_id();
+    }
+    return $_SESSION['cart_session_id'];
+}
+
+/**
+ * Format price with currency symbol
+ */
+function formatPriceDisplay($price) {
+    return '$' . formatPrice($price);
+}
+

@@ -1,52 +1,73 @@
-const CART_KEY = 'quickshop_cart';
+/**
+ * Navbar JavaScript - handles cart badge and cart actions
+ * 
+ * Note: Requires api-config.js to be loaded first for API_BASE
+ */
 
-function getCart() {
-    const cart = localStorage.getItem(CART_KEY);
-    return cart ? JSON.parse(cart) : [];
-}
+let cartCountCache = null;
 
-function saveCart(cart) {
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
-}
-
-function addToCart(productId, quantity = 1, showNotification = true) {
-    const cart = getCart();
-    const existingItem = cart.find(item => item.productId === productId);
-    
-    if (existingItem) {
-        existingItem.quantity += quantity;
-    } else {
-        cart.push({ productId, quantity });
+async function fetchCartCount() {
+    try {
+        const response = await fetch(`${window.API_BASE}/cart.php`);
+        if (!response.ok) return 0;
+        const data = await response.json();
+        return data.count || 0;
+    } catch (error) {
+        console.error('Error fetching cart count:', error);
+        return 0;
     }
-    
-    saveCart(cart);
-    updateCartBadge();
-    
-    // Use generic notification system (only if not suppressed)
-    if (showNotification && window.notifications) {
-        window.notifications.success('Product added to cart!');
+}
+
+async function addToCart(productId, quantity = 1, showNotification = true) {
+    try {
+        const response = await fetch(`${window.API_BASE}/cart.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ product_id: productId, quantity })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to add to cart');
+        }
+        
+        cartCountCache = null; // Invalidate cache
+        await updateCartBadge();
+        
+        // Use generic notification system (only if not suppressed)
+        if (showNotification && window.notifications) {
+            window.notifications.success('Product added to cart!');
+        }
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        if (window.notifications) {
+            window.notifications.error(error.message || 'Failed to add product to cart');
+        }
+        throw error;
     }
 }
 
 function removeFromCart(productId) {
-    const cart = getCart().filter(item => item.productId !== productId);
-    saveCart(cart);
-    updateCartBadge();
-    
-    if (window.notifications) {
-        window.notifications.info('Product removed from cart');
+    // This function is kept for backward compatibility but may not work with backend
+    // The cart page handles removal via cart item ID
+    console.warn('removeFromCart by productId is deprecated. Use cart item ID instead.');
+}
+
+async function getCartCount() {
+    if (cartCountCache !== null) {
+        return cartCountCache;
     }
+    cartCountCache = await fetchCartCount();
+    return cartCountCache;
 }
 
-function getCartCount() {
-    const cart = getCart();
-    return cart.reduce((total, item) => total + item.quantity, 0);
-}
-
-function updateCartBadge() {
+async function updateCartBadge() {
     // Update all cart badges on the page
     const badges = document.querySelectorAll('.cart-badge');
-    const count = getCartCount();
+    const count = await getCartCount();
+    cartCountCache = count;
     
     badges.forEach(badge => {
         if (count > 0) {
@@ -59,20 +80,7 @@ function updateCartBadge() {
 }
 
 function showCart() {
-    const cart = getCart();
-    if (cart.length === 0) {
-        if (window.notifications) {
-            window.notifications.info('Your cart is empty!');
-        } else {
-            alert('Your cart is empty!');
-        }
-    } else {
-        if (window.notifications) {
-            window.notifications.info(`You have ${cart.length} item(s) in your cart. Cart page coming soon!`);
-        } else {
-            alert('Cart page coming soon! You have ' + cart.length + ' item(s) in your cart.');
-        }
-    }
+    window.location.href = 'cart.php';
 }
 
 // Initialize cart badge and cart link handlers on page load

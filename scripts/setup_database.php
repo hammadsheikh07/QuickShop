@@ -32,8 +32,67 @@ try {
     ");
     echo "Table 'products' created or already exists.\n";
     
+    // Step 4b: Create cart_items table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS cart_items (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            session_id VARCHAR(255) NOT NULL,
+            product_id INT NOT NULL,
+            quantity INT NOT NULL DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+            UNIQUE KEY unique_cart_item (session_id, product_id),
+            INDEX idx_session_id (session_id)
+        )
+    ");
+    echo "Table 'cart_items' created or already exists.\n";
+    
+    // Step 4c: Create orders table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS orders (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            session_id VARCHAR(255) NOT NULL,
+            customer_name VARCHAR(255) NOT NULL,
+            customer_email VARCHAR(255) NOT NULL,
+            customer_phone VARCHAR(50),
+            shipping_address TEXT NOT NULL,
+            total_amount DECIMAL(10, 2) NOT NULL,
+            status VARCHAR(50) DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_session_id (session_id),
+            INDEX idx_status (status)
+        )
+    ");
+    echo "Table 'orders' created or already exists.\n";
+    
+    // Step 4d: Create order_items table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS order_items (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            order_id INT NOT NULL,
+            product_id INT NOT NULL,
+            product_name VARCHAR(255) NOT NULL,
+            product_price DECIMAL(10, 2) NOT NULL,
+            quantity INT NOT NULL,
+            subtotal DECIMAL(10, 2) NOT NULL,
+            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+            FOREIGN KEY (product_id) REFERENCES products(id),
+            INDEX idx_order_id (order_id)
+        )
+    ");
+    echo "Table 'order_items' created or already exists.\n";
+    
     // Step 5: Clear existing data (optional - uncomment if you want to reset)
-     $pdo->exec("TRUNCATE TABLE products");
+    // Need to clear dependent tables first due to foreign key constraints
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+    $pdo->exec("TRUNCATE TABLE order_items");
+    $pdo->exec("TRUNCATE TABLE cart_items");
+    $pdo->exec("TRUNCATE TABLE orders");
+    $pdo->exec("TRUNCATE TABLE products");
+    $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+    echo "Cleared existing data.\n";
     
     // Step 6: Insert sample products (skip if already exists)
     $sampleProducts = [

@@ -10,7 +10,7 @@
         <div class="navbar-actions">
             <a href="#">Help</a>
             <a href="#">Find a store</a>
-            <a href="#" class="cart-link">Sign in</a>
+            <a href="#">Sign in</a>
             <a href="#" class="cart-icon cart-link" title="Shopping bag">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M5 7h10l-1 8H6L5 7z"/>
@@ -26,7 +26,7 @@
             <a href="#">Products</a>
             <a href="#">Offers</a>
             <a href="#">New Arrivals</a>
-            <a href="#" class="cart-link">Cart</a>
+            <a href="cart.php" class="cart-link">Cart</a>
         </div>
     </div>
 </nav>
