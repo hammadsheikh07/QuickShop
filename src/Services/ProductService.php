@@ -19,9 +19,19 @@ class ProductService
         return $this->repo->getAll();
     }
 
+    public function listAllProductsIncludingDeleted(): array
+    {
+        return $this->repo->getAllIncludingDeleted();
+    }
+
     public function getProduct(int $id): ?Product
     {
         return $this->repo->getById($id);
+    }
+
+    public function getProductIncludingDeleted(int $id): ?Product
+    {
+        return $this->repo->getByIdIncludingDeleted($id);
     }
 
     public function createProduct(array $data): Product

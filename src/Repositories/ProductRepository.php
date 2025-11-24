@@ -14,8 +14,23 @@ class ProductRepository
         $this->db = $db;
     }
 
-    // Fetch all products
+    // Fetch all products (excluding soft-deleted)
     public function getAll(): array
+    {
+        $stmt = $this->db->query("SELECT * FROM products WHERE deleted_at IS NULL");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_map(fn($row) => new Product(
+            $row['id'],
+            $row['name'],
+            $row['description'],
+            $row['price'],
+            $row['stock']
+        ), $rows);
+    }
+
+    // Fetch all products including deleted (for admin)
+    public function getAllIncludingDeleted(): array
     {
         $stmt = $this->db->query("SELECT * FROM products");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -29,8 +44,26 @@ class ProductRepository
         ), $rows);
     }
 
-    // Fetch product by ID
+    // Fetch product by ID (excluding soft-deleted)
     public function getById(int $id): ?Product
+    {
+        $stmt = $this->db->prepare("SELECT * FROM products WHERE id = :id AND deleted_at IS NULL");
+        $stmt->execute(['id' => $id]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) return null;
+
+        return new Product(
+            $row['id'],
+            $row['name'],
+            $row['description'],
+            $row['price'],
+            $row['stock']
+        );
+    }
+
+    // Fetch product by ID including deleted (for admin)
+    public function getByIdIncludingDeleted(int $id): ?Product
     {
         $stmt = $this->db->prepare("SELECT * FROM products WHERE id = :id");
         $stmt->execute(['id' => $id]);
@@ -45,6 +78,15 @@ class ProductRepository
             $row['price'],
             $row['stock']
         );
+    }
+
+    // Check if product is deleted
+    public function isDeleted(int $id): bool
+    {
+        $stmt = $this->db->prepare("SELECT deleted_at FROM products WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row && $row['deleted_at'] !== null;
     }
 
     // Insert new product
@@ -84,10 +126,18 @@ class ProductRepository
         ]);
     }
 
-    // Delete product by ID
+    // Soft delete product by ID
     public function delete(int $id): bool
     {
-        $stmt = $this->db->prepare("DELETE FROM products WHERE id = :id");
+        $stmt = $this->db->prepare("UPDATE products SET deleted_at = CURRENT_TIMESTAMP WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() > 0;
+    }
+
+    // Restore soft-deleted product
+    public function restore(int $id): bool
+    {
+        $stmt = $this->db->prepare("UPDATE products SET deleted_at = NULL WHERE id = :id");
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount() > 0;
     }

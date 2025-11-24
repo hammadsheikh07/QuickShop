@@ -18,7 +18,7 @@ class CartRepository
     public function getBySessionId(string $sessionId): array
     {
         $stmt = $this->db->prepare("
-            SELECT ci.*, p.name, p.description, p.price, p.stock
+            SELECT ci.*, p.name, p.description, p.price, p.stock, p.deleted_at
             FROM cart_items ci
             INNER JOIN products p ON ci.product_id = p.id
             WHERE ci.session_id = :session_id
@@ -42,6 +42,10 @@ class CartRepository
                 $row['stock']
             );
             $cartItem->setProduct($product);
+            // Mark product as deleted if deleted_at is set
+            if (isset($row['deleted_at']) && $row['deleted_at'] !== null) {
+                $product->setStock(0); // Set stock to 0 to indicate unavailable
+            }
             return $cartItem;
         }, $rows);
     }
@@ -49,7 +53,7 @@ class CartRepository
     public function getBySessionAndProduct(string $sessionId, int $productId): ?CartItem
     {
         $stmt = $this->db->prepare("
-            SELECT ci.*, p.name, p.description, p.price, p.stock
+            SELECT ci.*, p.name, p.description, p.price, p.stock, p.deleted_at
             FROM cart_items ci
             INNER JOIN products p ON ci.product_id = p.id
             WHERE ci.session_id = :session_id AND ci.product_id = :product_id
@@ -75,6 +79,10 @@ class CartRepository
             $row['price'],
             $row['stock']
         );
+        // Mark product as deleted if deleted_at is set
+        if (isset($row['deleted_at']) && $row['deleted_at'] !== null) {
+            $product->setStock(0); // Set stock to 0 to indicate unavailable
+        }
         $cartItem->setProduct($product);
         return $cartItem;
     }
