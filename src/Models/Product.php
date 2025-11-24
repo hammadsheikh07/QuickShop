@@ -4,17 +4,17 @@ namespace App\Models;
 
 class Product
 {
-    public int $id;
-    public string $name;
-    public string $description;
-    public float $price;
-    public int $stock;
+    private int $id;
+    private string $name;
+    private string $description;
+    private int|float $price;
+    private int $stock;
 
     public function __construct(
         int $id,
         string $name,
         string $description,
-        float $price,
+        int|float $price,
         int $stock
     ) {
         $this->id = $id;
@@ -23,4 +23,19 @@ class Product
         $this->price = $price;
         $this->stock = $stock;
     }
+
+    public function getId(): int { return $this->id; }
+    public function setId(int $id): void { $this->id = $id; }
+
+    public function getName(): string { return $this->name; }
+    public function setName(string $name): void { $this->name = $name; }
+
+    public function getDescription(): string { return $this->description; }
+    public function setDescription(string $desc): void { $this->description = $desc; }
+
+    public function getPrice(): int|float { return $this->price; }
+    public function setPrice(int|float $price): void { $this->price = $price; }
+
+    public function getStock(): int { return $this->stock; }
+    public function setStock(int $stock): void { $this->stock = $stock; }
 }
