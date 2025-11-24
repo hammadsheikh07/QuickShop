@@ -27,10 +27,37 @@ try {
             name VARCHAR(255) NOT NULL,
             description TEXT,
             price DECIMAL(10, 2) NOT NULL,
-            stock INT NOT NULL DEFAULT 0
+            stock INT NOT NULL DEFAULT 0,
+            deleted_at TIMESTAMP NULL DEFAULT NULL,
+            INDEX idx_deleted_at (deleted_at)
         )
     ");
     echo "Table 'products' created or already exists.\n";
+    
+    // Step 4a: Add deleted_at column if it doesn't exist (for existing databases)
+    try {
+        $columnExists = $pdo->query("SHOW COLUMNS FROM products LIKE 'deleted_at'")->fetch();
+        if (!$columnExists) {
+            $pdo->exec("ALTER TABLE products ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL");
+            $pdo->exec("ALTER TABLE products ADD INDEX idx_deleted_at (deleted_at)");
+            echo "Added deleted_at column to products table.\n";
+        }
+    } catch (PDOException $e) {
+        // Column might already exist, ignore error
+        echo "Note: " . $e->getMessage() . "\n";
+    }
+    
+    // Step 4a2: Create admins table
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS admins (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(100) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    ");
+    echo "Table 'admins' created or already exists.\n";
     
     // Step 4b: Create cart_items table
     $pdo->exec("
@@ -119,9 +146,19 @@ try {
         }
     }
 
+    // Step 7: Create default admin user (username: admin, password: admin123)
+    $adminCheck = $pdo->query("SELECT COUNT(*) FROM admins")->fetchColumn();
+    if ($adminCheck == 0) {
+        $adminPassword = password_hash('admin123', PASSWORD_DEFAULT);
+        $pdo->exec("INSERT INTO admins (username, password_hash) VALUES ('admin', '{$adminPassword}')");
+        echo "Default admin user created (username: admin, password: admin123).\n";
+    } else {
+        echo "Admin user already exists.\n";
+    }
+
     echo "Setup completed successfully!\n";
     echo "Inserted {$inserted} new sample products.\n";
-    echo "Total products in database: " . $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn() . "\n";
+    echo "Total products in database: " . $pdo->query("SELECT COUNT(*) FROM products WHERE deleted_at IS NULL")->fetchColumn() . "\n";
     
 } catch (PDOException $e) {
     die("Error: " . $e->getMessage() . "\n");

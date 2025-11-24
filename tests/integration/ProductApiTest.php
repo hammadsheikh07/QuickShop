@@ -28,7 +28,8 @@ class ProductApiTest extends TestCase
                 name TEXT NOT NULL,
                 description TEXT,
                 price REAL NOT NULL,
-                stock INTEGER NOT NULL DEFAULT 0
+                stock INTEGER NOT NULL DEFAULT 0,
+                deleted_at TIMESTAMP NULL
             )
         ");
 

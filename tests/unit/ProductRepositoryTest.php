@@ -22,7 +22,8 @@ class ProductRepositoryTest extends TestCase
                 name TEXT,
                 description TEXT,
                 price REAL,
-                stock INTEGER
+                stock INTEGER,
+                deleted_at TIMESTAMP NULL
             );
         ");
 
@@ -68,13 +69,18 @@ class ProductRepositoryTest extends TestCase
         $this->assertEquals("New Name", $dbProduct->getName());
     }
 
-    public function test_delete_product()
+    public function test_delete_product_soft_delete()
     {
         $p = $this->repo->create(new Product(0, "Laptop", "Powerful laptop", 999.0, 15));
 
         $deleted = $this->repo->delete($p->getId());
 
         $this->assertTrue($deleted);
+        // Should not be retrievable via getById (soft delete)
         $this->assertNull($this->repo->getById($p->getId()));
+        // But should be retrievable via getByIdIncludingDeleted
+        $deletedProduct = $this->repo->getByIdIncludingDeleted($p->getId());
+        $this->assertNotNull($deletedProduct);
+        $this->assertTrue($this->repo->isDeleted($p->getId()));
     }
 }
